@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiniela Liga MX · Clausura 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --verde:         #00a845;
+      --verde-lite:    #e6f7ee;
+      --rojo:          #d50000;
+      --rojo-lite:     #ffeaea;
+      --amarillo:      #e08800;
+      --amarillo-lite: #fff8e1;
+      --fondo:         #f2f3f7;
+      --card:          #ffffff;
+      --borde:         #dde0e8;
+      --texto:         #1a1a2e;
+      --gris:          #7b7b9a;
+      --gris-lite:     #f0f1f6;
+      --acento:        #1e3a5f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--fondo); color: var(--texto); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+    /* HEADER */
+    header {
+      background: var(--acento);
+      padding: 15px 20px;
+      display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 0; z-index: 10;
+      box-shadow: 0 2px 10px rgba(0,0,0,.18);
+    }
+    .logo { width: 44px; height: 44px; background: var(--verde); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .header-text h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px,5vw,30px); letter-spacing: 2px; color: #fff; line-height: 1; }
+    .header-text p  { font-size: 11px; color: rgba(255,255,255,.55); letter-spacing: 1px; text-transform: uppercase; }
+
+    /* MAIN */
+    main { max-width: 680px; margin: 0 auto; padding: 22px 16px 100px; }
+
+    /* CARDS GENERALES */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+    .card label {
+      display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gris); margin-bottom: 10px; font-weight: 700;
+    }
+
+    /* NOMBRE */
+    .card input[type=text] {
+      width: 100%; background: var(--gris-lite); border: 1.5px solid var(--borde);
+      border-radius: 10px; padding: 13px 16px; font-size: 17px;
+      font-family: 'Inter',sans-serif; font-weight: 600; color: var(--texto); outline: none;
+      transition: border-color .2s;
+    }
+    .card input[type=text]:focus { border-color: var(--verde); background: #fff; }
+
+    /* TABS JORNADA */
+    .jornada-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .jornada-tab {
+      padding: 7px 13px; border-radius: 30px; border: 1.5px solid var(--borde);
+      background: var(--gris-lite); font-size: 12px; font-weight: 700; color: var(--gris);
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .jornada-tab:hover { border-color: var(--verde); color: var(--verde); background: var(--verde-lite); }
+    .jornada-tab.activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+    /* TÍTULO JORNADA */
+    .jornada-title {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 12px; padding: 0 2px;
+    }
+    .jornada-title h2 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; color: var(--acento); }
+    .jornada-title .fechas { font-size: 12px; color: var(--gris); text-transform: uppercase; }
+
+    /* PARTIDO */
+    .partido {
+      background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px;
+      margin-bottom: 10px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .partido.seleccionado { border-color: var(--verde); box-shadow: 0 2px 14px rgba(0,168,69,.12); }
+    .partido-fecha {
+      background: var(--gris-lite); padding: 5px 14px; font-size: 11px;
+      color: var(--gris); letter-spacing: .5px; text-transform: uppercase;
+      border-bottom: 1px solid var(--borde); font-weight: 700;
+    }
+    .partido-equipos { display: flex; align-items: center; padding: 14px 16px; gap: 10px; }
+    .equipo { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
+    .equipo-escudo {
+      width: 44px; height: 44px; border-radius: 50%; object-fit: contain;
+      background: var(--gris-lite); padding: 4px; border: 1px solid var(--borde);
+    }
+    .equipo-nombre { font-size: 12px; font-weight: 700; color: var(--texto); line-height: 1.2; }
+    .vs { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--gris); flex-shrink: 0; }
+    .nota-pendiente {
+      background: var(--amarillo-lite); border-top: 1px solid #ffe082;
+      padding: 5px 14px; font-size: 11px; color: var(--amarillo);
+      font-weight: 700; text-align: center;
+    }
+
+    /* OPCIONES */
+    .opciones { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--borde); }
+    .opcion {
+      padding: 11px 6px; text-align: center; cursor: pointer;
+      font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+      color: var(--gris); border: none; background: transparent;
+      transition: background .12s, color .12s; position: relative;
+    }
+    .opcion:not(:last-child)::after { content:''; position:absolute; right:0; top:20%; bottom:20%; width:1px; background:var(--borde); }
+    .opcion:hover { background: var(--gris-lite); color: var(--texto); }
+    .opcion.local.activo   { background: var(--verde-lite);    color: var(--verde);    font-weight: 800; }
+    .opcion.empate.activo  { background: var(--amarillo-lite); color: var(--amarillo); font-weight: 800; }
+    .opcion.visita.activo  { background: var(--rojo-lite);     color: var(--rojo);     font-weight: 800; }
+    .opcion .icono { font-size: 15px; display: block; margin-bottom: 2px; }
+
+    /* PROGRESO */
+    .progreso {
+      background: var(--card); border: 1px solid var(--borde); border-radius: 14px;
+      padding: 14px 18px; margin: 18px 0 14px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+    .progreso-barra-wrap { flex: 1; background: var(--gris-lite); border-radius: 6px; height: 8px; overflow: hidden; }
+    .progreso-barra { height: 100%; background: linear-gradient(90deg,#009636,#00c853); border-radius: 6px; transition: width .3s; }
+    .progreso-texto { font-size: 13px; font-weight: 700; color: var(--verde); white-space: nowrap; }
+
+    /* BTN GENERAR */
+    .btn-generar {
+      width: 100%; padding: 17px; background: var(--acento); border: none; border-radius: 14px;
+      font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: #fff;
+      cursor: pointer; transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 18px rgba(30,58,95,.25);
+    }
+    .btn-generar:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+    .btn-generar:active:not(:disabled) { transform: translateY(0); }
+    .btn-generar:disabled { opacity: .3; cursor: not-allowed; }
+
+    /* ── CAPTURA OCULTA ── */
+    #captura {
+      position: fixed; top: -9999px; left: -9999px; width: 660px;
+      background: #ffffff; padding: 28px; font-family: 'Inter', sans-serif;
+    }
+    .cap-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 3px solid var(--acento); }
+    .cap-logo { width: 44px; height: 44px; background: var(--verde); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .cap-titulo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; color: var(--acento); line-height: 1; }
+    .cap-sub { font-size: 11px; color: var(--gris); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .cap-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+    .cap-nombre { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--acento); }
+    .cap-fecha { font-size: 11px; color: var(--gris); text-align: right; line-height: 1.5; }
+    .cap-partido { display: flex; align-items: center; justify-content: space-between; background: var(--gris-lite); border-radius: 8px; padding: 9px 12px; margin-bottom: 6px; }
+    .cap-equipos { font-size: 13px; font-weight: 600; color: var(--texto); flex: 1; }
+    .cap-equipos span { color: var(--gris); margin: 0 4px; }
+    .cap-sel { font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 4px 11px; border-radius: 20px; text-transform: uppercase; flex-shrink: 0; }
+    .cap-sel.local   { background: var(--verde-lite);    color: var(--verde); }
+    .cap-sel.empate  { background: var(--amarillo-lite); color: var(--amarillo); }
+    .cap-sel.visita  { background: var(--rojo-lite);     color: var(--rojo); }
+    .cap-sel.vacio   { background: #eee; color: var(--gris); }
+    .cap-footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 10px; color: var(--gris); text-align: center; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.visible { display: flex; }
+    .modal-box { background: #fff; border-radius: 18px; max-width: 480px; width: 100%; padding: 24px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+    .modal-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--acento); margin-bottom: 4px; }
+    .modal-box p { font-size: 13px; color: var(--gris); margin-bottom: 14px; }
+    .modal-box img { width: 100%; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--borde); }
+    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+    .btn-dl { padding: 12px 26px; background: var(--acento); color: #fff; border: none; border-radius: 10px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; }
+    .btn-dl:hover { opacity: .85; }
+    .btn-cerrar { padding: 12px 20px; background: var(--gris-lite); color: var(--gris); border: 1px solid var(--borde); border-radius: 10px; font-size: 14px; cursor: pointer; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--acento); color: #fff; padding: 11px 22px; border-radius: 30px; font-weight: 700; font-size: 13px; z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 480px) {
+      .equipo-nombre { font-size: 11px; }
+      .jornada-tab { font-size: 11px; padding: 6px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚽</div>
+  <div class="header-text">
+    <h1>Quiniela Liga MX</h1>
+    <p>Torneo Clausura 2026</p>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <label>Tu nombre</label>
+    <input type="text" id="nombre" placeholder="Escribe tu nombre…" maxlength="40" />
+  </div>
+
+  <div class="card">
+    <label>Selecciona la jornada</label>
+    <div class="jornada-tabs" id="tabs"></div>
+  </div>
+
+  <div class="jornada-title">
+    <h2 id="jornada-titulo">Jornada 9</h2>
+    <span class="fechas" id="jornada-fechas"></span>
+  </div>
+
+  <div id="partidos"></div>
+
+  <div class="progreso">
+    <div class="progreso-barra-wrap">
+      <div class="progreso-barra" id="barra" style="width:0%"></div>
+    </div>
+    <div class="progreso-texto" id="progreso-txt">0 / 0</div>
+  </div>
+
+  <button class="btn-generar" id="btn-gen" disabled>⚽ Guardar Mi Quiniela</button>
+</main>
+
+<div id="captura"></div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <h3>¡Quiniela Lista! 🎉</h3>
+    <p>Descarga tu boleto y compártelo con tus compañeros</p>
+    <img id="preview-img" src="" alt="preview" />
+    <div class="modal-btns">
+      <button class="btn-dl" id="btn-dl">⬇ Descargar JPG</button>
+      <button class="btn-cerrar" id="btn-cerrar">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────────────────────────────────────────────────────────────
+// DATOS CLAUSURA 2026  (J9 → J17)
+// Horarios = Tiempo Centro México (CDMX)
+// ──────────────────────────────────────────────────────────────────
+const JORNADAS = {
+  9: {
+    titulo: "Jornada 9",
+    fechas: "3–4 Mar 2026",
+    partidos: [
+      { id:"9-1",  fecha:"Mar 3 Mar · 19:00", local:"Pachuca",        visita:"Necaxa"        },
+      { id:"9-2",  fecha:"Mar 3 Mar · 19:00", local:"Santos",         visita:"Cruz Azul"     },
+      { id:"9-3",  fecha:"Mar 3 Mar · 21:00", local:"At. San Luis",   visita:"Mazatlán"      },
+      { id:"9-4",  fecha:"Mar 3 Mar · 21:10", local:"Pumas",          visita:"Toluca"        },
+      { id:"9-5",  fecha:"Mié 4 Mar · 19:00", local:"Monterrey",      visita:"Querétaro"     },
+      { id:"9-6",  fecha:"Mié 4 Mar · 19:00", local:"Puebla",         visita:"Tigres"        },
+      { id:"9-7",  fecha:"Mié 4 Mar · 21:00", local:"Atlas",          visita:"Xolos Tijuana" },
+      { id:"9-8",  fecha:"Mié 4 Mar · 21:00", local:"América",        visita:"FC Juárez"     },
+      { id:"9-9",  fecha:"Mar 18 Mar · 20:07 ⚠ PENDIENTE", local:"Chivas", visita:"León",   pendiente:true },
+    ]
+  },
+  10: {
+    titulo: "Jornada 10",
+    fechas: "6–8 Mar 2026",
+    partidos: [
+      { id:"10-1", fecha:"Vie 6 Mar · 19:00",  local:"Mazatlán",       visita:"León"          },
+      { id:"10-2", fecha:"Vie 6 Mar · 21:00",  local:"Necaxa",         visita:"Pumas"         },
+      { id:"10-3", fecha:"Sáb 7 Mar · 17:00",  local:"Cruz Azul",      visita:"At. San Luis"  },
+      { id:"10-4", fecha:"Sáb 7 Mar · 17:00",  local:"Querétaro",      visita:"América"       },
+      { id:"10-5", fecha:"Sáb 7 Mar · 19:00",  local:"Pachuca",        visita:"Puebla"        },
+      { id:"10-6", fecha:"Sáb 7 Mar · 19:00",  local:"Atlas",          visita:"Chivas"        },
+      { id:"10-7", fecha:"Sáb 7 Mar · 21:00",  local:"Monterrey",      visita:"Tigres"        },
+      { id:"10-8", fecha:"Sáb 7 Mar · 21:00",  local:"Toluca",         visita:"FC Juárez"     },
+      { id:"10-9", fecha:"Dom 8 Mar · 21:00",   local:"Xolos Tijuana", visita:"Santos"        },
+    ]
+  },
+  11: {
+    titulo: "Jornada 11",
+    fechas: "13–15 Mar 2026",
+    partidos: [
+      { id:"11-1", fecha:"Vie 13 Mar · 19:00", local:"FC Juárez",      visita:"Necaxa"        },
+      { id:"11-2", fecha:"Vie 13 Mar · 21:00", local:"Santos",         visita:"At. San Luis"  },
+      { id:"11-3", fecha:"Sáb 14 Mar · 17:00", local:"Chivas",         visita:"Santos"        },
+      { id:"11-4", fecha:"Sáb 14 Mar · 17:00", local:"Pumas",          visita:"Cruz Azul"     },
+      { id:"11-5", fecha:"Sáb 14 Mar · 19:00", local:"Toluca",         visita:"Querétaro"     },
+      { id:"11-6", fecha:"Sáb 14 Mar · 19:00", local:"Tigres",         visita:"At. San Luis"  },
+      { id:"11-7", fecha:"Sáb 14 Mar · 21:00", local:"León",           visita:"Monterrey"     },
+      { id:"11-8", fecha:"Sáb 14 Mar · 21:00", local:"Mazatlán",       visita:"América"       },
+      { id:"11-9", fecha:"Dom 15 Mar · 19:00",  local:"Puebla",        visita:"Atlas"         },
+    ]
+  },
+  12: {
+    titulo: "Jornada 12",
+    fechas: "20–22 Mar 2026",
+    partidos: [
+      { id:"12-1", fecha:"Vie 20 Mar · 19:00", local:"Necaxa",         visita:"Santos"        },
+      { id:"12-2", fecha:"Vie 20 Mar · 21:00", local:"Cruz Azul",      visita:"Toluca"        },
+      { id:"12-3", fecha:"Sáb 21 Mar · 17:00", local:"At. San Luis",   visita:"Pumas"         },
+      { id:"12-4", fecha:"Sáb 21 Mar · 17:00", local:"Querétaro",      visita:"Mazatlán"      },
+      { id:"12-5", fecha:"Sáb 21 Mar · 19:00", local:"América",        visita:"León"          },
+      { id:"12-6", fecha:"Sáb 21 Mar · 19:00", local:"Monterrey",      visita:"Chivas"        },
+      { id:"12-7", fecha:"Sáb 21 Mar · 21:00", local:"Tigres",         visita:"FC Juárez"     },
+      { id:"12-8", fecha:"Sáb 21 Mar · 21:00", local:"Xolos Tijuana",  visita:"Pachuca"       },
+      { id:"12-9", fecha:"Dom 22 Mar · 19:00",  local:"Atlas",         visita:"Puebla"        },
+    ]
+  },
+  13: {
+    titulo: "Jornada 13",
+    fechas: "28–29 Mar 2026",
+    partidos: [
+      { id:"13-1", fecha:"Sáb 28 Mar · 17:00", local:"Pachuca",        visita:"Cruz Azul"     },
+      { id:"13-2", fecha:"Sáb 28 Mar · 17:00", local:"Toluca",         visita:"Tigres"        },
+      { id:"13-3", fecha:"Sáb 28 Mar · 19:00", local:"Santos",         visita:"Querétaro"     },
+      { id:"13-4", fecha:"Sáb 28 Mar · 19:00", local:"Pumas",          visita:"Chivas"        },
+      { id:"13-5", fecha:"Sáb 28 Mar · 21:00", local:"León",           visita:"Xolos Tijuana" },
+      { id:"13-6", fecha:"Sáb 28 Mar · 21:00", local:"Mazatlán",       visita:"Puebla"        },
+      { id:"13-7", fecha:"Dom 29 Mar · 17:00",  local:"At. San Luis",  visita:"Atlas"         },
+      { id:"13-8", fecha:"Dom 29 Mar · 19:00",  local:"FC Juárez",     visita:"Monterrey"     },
+      { id:"13-9", fecha:"Dom 29 Mar · 21:00",  local:"América",       visita:"Necaxa"        },
+    ]
+  },
+  14: {
+    titulo: "Jornada 14",
+    fechas: "3–5 Abr 2026",
+    partidos: [
+      { id:"14-1", fecha:"Vie 3 Abr · 19:00",  local:"Cruz Azul",      visita:"Atlas"         },
+      { id:"14-2", fecha:"Vie 3 Abr · 21:00",  local:"Querétaro",      visita:"Pachuca"       },
+      { id:"14-3", fecha:"Sáb 4 Abr · 17:00",  local:"Chivas",         visita:"Mazatlán"      },
+      { id:"14-4", fecha:"Sáb 4 Abr · 17:00",  local:"Tigres",         visita:"León"          },
+      { id:"14-5", fecha:"Sáb 4 Abr · 19:00",  local:"Necaxa",         visita:"Toluca"        },
+      { id:"14-6", fecha:"Sáb 4 Abr · 19:00",  local:"Puebla",         visita:"FC Juárez"     },
+      { id:"14-7", fecha:"Sáb 4 Abr · 21:00",  local:"Xolos Tijuana",  visita:"At. San Luis"  },
+      { id:"14-8", fecha:"Dom 5 Abr · 17:00",   local:"Santos",        visita:"América"       },
+      { id:"14-9", fecha:"Dom 5 Abr · 20:00",   local:"Pumas",         visita:"Monterrey"     },
+    ]
+  },
+  15: {
+    titulo: "Jornada 15",
+    fechas: "10–12 Abr 2026",
+    partidos: [
+      { id:"15-1", fecha:"Vie 10 Abr · 19:00",  local:"Atlas",         visita:"Cruz Azul"     },
+      { id:"15-2", fecha:"Vie 10 Abr · 21:00",  local:"Pachuca",       visita:"Chivas"        },
+      { id:"15-3", fecha:"Sáb 11 Abr · 17:00",  local:"León",          visita:"Pumas"         },
+      { id:"15-4", fecha:"Sáb 11 Abr · 17:00",  local:"Tigres",        visita:"Chivas"        },
+      { id:"15-5", fecha:"Sáb 11 Abr · 19:00",  local:"Mazatlán",      visita:"Santos"        },
+      { id:"15-6", fecha:"Sáb 11 Abr · 19:00",  local:"Toluca",        visita:"América"       },
+      { id:"15-7", fecha:"Sáb 11 Abr · 21:00",  local:"At. San Luis",  visita:"Querétaro"     },
+      { id:"15-8", fecha:"Dom 12 Abr · 17:00",   local:"FC Juárez",    visita:"Necaxa"        },
+      { id:"15-9", fecha:"Dom 12 Abr · 19:00",   local:"Monterrey",    visita:"Puebla"        },
+    ]
+  },
+  16: {
+    titulo: "Jornada 16",
+    fechas: "17–22 Abr 2026",
+    partidos: [
+      { id:"16-1", fecha:"Vie 17 Abr · 19:00",  local:"Cruz Azul",     visita:"Mazatlán"      },
+      { id:"16-2", fecha:"Vie 17 Abr · 21:00",  local:"Querétaro",     visita:"Xolos Tijuana" },
+      { id:"16-3", fecha:"Sáb 18 Abr · 17:00",  local:"Chivas",        visita:"Puebla"        },
+      { id:"16-4", fecha:"Sáb 18 Abr · 17:00",  local:"Pumas",         visita:"Santos"        },
+      { id:"16-5", fecha:"Sáb 18 Abr · 19:00",  local:"América",       visita:"Pachuca"       },
+      { id:"16-6", fecha:"Sáb 18 Abr · 19:00",  local:"Atlas",         visita:"León"          },
+      { id:"16-7", fecha:"Dom 19 Abr · 17:00",   local:"At. San Luis",  visita:"Toluca"       },
+      { id:"16-8", fecha:"Dom 19 Abr · 19:00",   local:"FC Juárez",    visita:"Tigres"        },
+      { id:"16-9", fecha:"Mié 22 Abr · 21:00",   local:"Necaxa",       visita:"Chivas"        },
+    ]
+  },
+  17: {
+    titulo: "Jornada 17",
+    fechas: "24–26 Abr 2026",
+    partidos: [
+      { id:"17-1", fecha:"Vie 24 Abr · 19:00",  local:"Santos",        visita:"Necaxa"        },
+      { id:"17-2", fecha:"Vie 24 Abr · 21:00",  local:"Pachuca",       visita:"Atlas"         },
+      { id:"17-3", fecha:"Sáb 25 Abr · 17:00",  local:"Mazatlán",      visita:"Toluca"        },
+      { id:"17-4", fecha:"Sáb 25 Abr · 17:00",  local:"Querétaro",     visita:"Cruz Azul"     },
+      { id:"17-5", fecha:"Sáb 25 Abr · 19:00",  local:"Chivas",        visita:"Xolos Tijuana" },
+      { id:"17-6", fecha:"Sáb 25 Abr · 19:00",  local:"León",          visita:"At. San Luis"  },
+      { id:"17-7", fecha:"Sáb 25 Abr · 21:00",  local:"Monterrey",     visita:"FC Juárez"     },
+      { id:"17-8", fecha:"Dom 26 Abr · 17:00",   local:"Puebla",       visita:"Pumas"         },
+      { id:"17-9", fecha:"Dom 26 Abr · 19:00",   local:"Tigres",       visita:"América"       },
+    ]
+  }
+};
+
+// Escudos Wikipedia SVG
+const ESCUDOS = {
+  "América":        "https://upload.wikimedia.org/wikipedia/en/thumb/5/53/Club_America_badge.svg/80px-Club_America_badge.svg.png",
+  "Atlas":          "https://upload.wikimedia.org/wikipedia/en/thumb/1/16/Atlas_F.C._logo.svg/80px-Atlas_F.C._logo.svg.png",
+  "At. San Luis":   "https://upload.wikimedia.org/wikipedia/en/thumb/d/d5/Atletico_San_Luis_logo.svg/80px-Atletico_San_Luis_logo.svg.png",
+  "Chivas":         "https://upload.wikimedia.org/wikipedia/en/thumb/5/58/Guadalajara_Chivas_logo.svg/80px-Guadalajara_Chivas_logo.svg.png",
+  "Cruz Azul":      "https://upload.wikimedia.org/wikipedia/en/thumb/7/76/Cruz_Azul_logo.svg/80px-Cruz_Azul_logo.svg.png",
+  "FC Juárez":      "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/FC_Juarez_logo.svg/80px-FC_Juarez_logo.svg.png",
+  "León":           "https://upload.wikimedia.org/wikipedia/en/thumb/6/61/Club_Le%C3%B3n_logo.svg/80px-Club_Le%C3%B3n_logo.svg.png",
+  "Mazatlán":       "https://upload.wikimedia.org/wikipedia/en/thumb/1/17/Mazatlan_F.C._logo.svg/80px-Mazatlan_F.C._logo.svg.png",
+  "Monterrey":      "https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Rayados_del_Monterrey_logo.svg/80px-Rayados_del_Monterrey_logo.svg.png",
+  "Necaxa":         "https://upload.wikimedia.org/wikipedia/en/thumb/8/88/Necaxa_escudo.svg/80px-Necaxa_escudo.svg.png",
+  "Pachuca":        "https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Pachuca_de_Soto_FC_logo.svg/80px-Pachuca_de_Soto_FC_logo.svg.png",
+  "Puebla":         "https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Puebla_FC_logo.svg/80px-Puebla_FC_logo.svg.png",
+  "Pumas":          "https://upload.wikimedia.org/wikipedia/en/thumb/8/84/Pumas_UNAM_logo.svg/80px-Pumas_UNAM_logo.svg.png",
+  "Querétaro":      "https://upload.wikimedia.org/wikipedia/en/thumb/3/3c/Queretaro_FC_logo.svg/80px-Queretaro_FC_logo.svg.png",
+  "Santos":         "https://upload.wikimedia.org/wikipedia/en/thumb/e/ef/Santos_Laguna_logo.svg/80px-Santos_Laguna_logo.svg.png",
+  "Tigres":         "https://upload.wikimedia.org/wikipedia/en/thumb/d/d8/Tigres_UANL_logo.svg/80px-Tigres_UANL_logo.svg.png",
+  "Toluca":         "https://upload.wikimedia.org/wikipedia/en/thumb/3/31/Deportivo_Toluca_FC_logo.svg/80px-Deportivo_Toluca_FC_logo.svg.png",
+  "Xolos Tijuana":  "https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Club_Tijuana_logo.svg/80px-Club_Tijuana_logo.svg.png",
+};
+
+function getEscudo(equipo) {
+  return ESCUDOS[equipo] || `https://ui-avatars.com/api/?name=${encodeURIComponent(equipo)}&background=e0e0e8&color=1a1a2e&size=80&bold=true&font-size=0.35`;
+}
+
+// ── ESTADO ──
+let jornadaActual = 9;
+const selecciones = {};   // { jornadaNum: { "id": "local"|"empate"|"visita" } }
+
+// ── RENDER TABS ──
+function renderTabs() {
+  const cont = document.getElementById('tabs');
+  cont.innerHTML = '';
+  Object.entries(JORNADAS).forEach(([num, data]) => {
+    const n = parseInt(num);
+    const btn = document.createElement('button');
+    btn.className = 'jornada-tab' + (n === jornadaActual ? ' activo' : '');
+    btn.innerHTML = `J${n} <span style="font-weight:400;opacity:.7">(${data.fechas})</span>`;
+    btn.addEventListener('click', () => { jornadaActual = n; renderTabs(); renderPartidos(); });
+    cont.appendChild(btn);
+  });
+}
+
+// ── RENDER PARTIDOS ──
+function renderPartidos() {
+  const j = JORNADAS[jornadaActual];
+  document.getElementById('jornada-titulo').textContent = j.titulo;
+  document.getElementById('jornada-fechas').textContent = j.fechas;
+
+  if (!selecciones[jornadaActual]) selecciones[jornadaActual] = {};
+  const sels = selecciones[jornadaActual];
+
+  const cont = document.getElementById('partidos');
+  cont.innerHTML = '';
+
+  j.partidos.forEach(p => {
+    const ya = sels[p.id];
+    const div = document.createElement('div');
+    div.className = 'partido' + (ya ? ' seleccionado' : '');
+    div.id = `partido-${p.id}`;
+    div.innerHTML = `
+      <div class="partido-fecha">${p.fecha}</div>
+      <div class="partido-equipos">
+        <div class="equipo">
+          <img class="equipo-escudo" src="${getEscudo(p.local)}" alt="${p.local}" onerror="this.src='${getEscudo(p.local)}'">
+          <div class="equipo-nombre">${p.local}</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="equipo">
+          <img class="equipo-escudo" src="${getEscudo(p.visita)}" alt="${p.visita}" onerror="this.src='${getEscudo(p.visita)}'">
+          <div class="equipo-nombre">${p.visita}</div>
+        </div>
+      </div>
+      ${p.pendiente ? `<div class="nota-pendiente">⚠️ Partido pendiente — fecha sujeta a cambio</div>` : ''}
+      <div class="opciones">
+        <button class="opcion local${ya==='local'?' activo':''}"   data-id="${p.id}" data-sel="local"><span class="icono">🏠</span>Local</button>
+        <button class="opcion empate${ya==='empate'?' activo':''}" data-id="${p.id}" data-sel="empate"><span class="icono">🤝</span>Empate</button>
+        <button class="opcion visita${ya==='visita'?' activo':''}" data-id="${p.id}" data-sel="visita"><span class="icono">✈️</span>Visita</button>
+      </div>`;
+    cont.appendChild(div);
+  });
+
+  cont.querySelectorAll('.opcion').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id, sel = btn.dataset.sel;
+      selecciones[jornadaActual][id] = sel;
+      const card = document.getElementById(`partido-${id}`);
+      card.querySelectorAll('.opcion').forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+      card.classList.add('seleccionado');
+      actualizarProgreso();
+    });
+  });
+
+  actualizarProgreso();
+}
+
+function actualizarProgreso() {
+  const total = JORNADAS[jornadaActual].partidos.length;
+  const n = Object.keys(selecciones[jornadaActual] || {}).length;
+  document.getElementById('barra').style.width = (n / total * 100) + '%';
+  document.getElementById('progreso-txt').textContent = `${n} / ${total}`;
+  const nombre = document.getElementById('nombre').value.trim();
+  document.getElementById('btn-gen').disabled = (n < total || !nombre);
+}
+
+document.getElementById('nombre').addEventListener('input', actualizarProgreso);
+
+// ── HORA CDMX ──
+async function getHoraCDMX() {
+  try {
+    const r = await fetch('https://worldtimeapi.org/api/timezone/America/Mexico_City');
+    const d = await r.json();
+    return new Date(d.datetime).toLocaleString('es-MX', { timeZone:'America/Mexico_City', weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+  } catch {
+    return new Date().toLocaleString('es-MX', { timeZone:'America/Mexico_City', weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+  }
+}
+
+// ── GENERAR ──
+let imgDataUrl = '';
+
+document.getElementById('btn-gen').addEventListener('click', async () => {
+  const nombre = document.getElementById('nombre').value.trim();
+  const hora = await getHoraCDMX();
+  const j = JORNADAS[jornadaActual];
+  const sels = selecciones[jornadaActual] || {};
+  const etiq = { local:'Local', empate:'Empate', visita:'Visita' };
+
+  const filas = j.partidos.map(p => {
+    const sel = sels[p.id];
+    return `<div class="cap-partido">
+      <div class="cap-equipos">${p.local} <span>vs</span> ${p.visita}</div>
+      <div class="cap-sel ${sel||'vacio'}">${sel ? etiq[sel] : '—'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('captura').innerHTML = `
+    <div class="cap-header">
+      <div class="cap-logo">⚽</div>
+      <div>
+        <div class="cap-titulo">Quiniela Liga MX</div>
+        <div class="cap-sub">Clausura 2026 · ${j.titulo} (${j.fechas})</div>
+      </div>
+    </div>
+    <div class="cap-meta">
+      <div class="cap-nombre">👤 ${nombre}</div>
+      <div class="cap-fecha">📅 ${hora}<br>Hora Ciudad de México</div>
+    </div>
+    ${filas}
+    <div class="cap-footer">Quiniela Liga MX · Clausura 2026</div>`;
+
+  try {
+    const canvas = await html2canvas(document.getElementById('captura'), { backgroundColor:'#ffffff', scale:2, useCORS:true, allowTaint:true, logging:false });
+    imgDataUrl = canvas.toDataURL('image/jpeg', 0.93);
+    document.getElementById('preview-img').src = imgDataUrl;
+    document.getElementById('modal').classList.add('visible');
+  } catch(e) {
+    alert('Error al generar imagen. Intenta de nuevo.'); console.error(e);
+  }
+});
+
+document.getElementById('btn-dl').addEventListener('click', () => {
+  const nombre = document.getElementById('nombre').value.trim().replace(/\s+/g,'_');
+  const a = document.createElement('a');
+  a.href = imgDataUrl;
+  a.download = `quiniela_j${jornadaActual}_${nombre}.jpg`;
+  a.click();
+  toast('¡Descargado! 🎉');
+});
+
+document.getElementById('btn-cerrar').addEventListener('click', () => document.getElementById('modal').classList.remove('visible'));
+document.getElementById('modal').addEventListener('click', e => { if (e.target===document.getElementById('modal')) document.getElementById('modal').classList.remove('visible'); });
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// INIT
+renderTabs();
+renderPartidos();
+</script>
+</body>
+</html>
