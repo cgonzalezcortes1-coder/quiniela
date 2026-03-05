@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --verde:         #00a845;
@@ -97,7 +98,11 @@
     }
     .partido-equipos { display: flex; align-items: center; padding: 14px 16px; gap: 10px; }
     .equipo { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
-    .equipo-nombre { font-size: 14px; font-weight: 700; color: var(--texto); line-height: 1.2; }
+    .equipo-escudo {
+      width: 44px; height: 44px; border-radius: 50%; object-fit: contain;
+      background: var(--gris-lite); padding: 4px; border: 1px solid var(--borde);
+    }
+    .equipo-nombre { font-size: 12px; font-weight: 700; color: var(--texto); line-height: 1.2; }
     .vs { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--gris); flex-shrink: 0; }
     .nota-pendiente {
       background: var(--amarillo-lite); border-top: 1px solid #ffe082;
@@ -162,7 +167,9 @@
     .cap-sel.empate  { background: var(--amarillo-lite); color: var(--amarillo); }
     .cap-sel.visita  { background: var(--rojo-lite);     color: var(--rojo); }
     .cap-sel.vacio   { background: #eee; color: var(--gris); }
-    .cap-footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 10px; color: var(--gris); text-align: center; }
+    .cap-footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--borde); font-size: 10px; color: var(--gris); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .cap-footer-text { flex: 1; text-align: left; }
+    .cap-qr { flex-shrink: 0; }
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
@@ -383,6 +390,32 @@ const JORNADAS = {
   }
 };
 
+// Escudos Wikipedia SVG
+const ESCUDOS = {
+  "América":        "https://upload.wikimedia.org/wikipedia/en/thumb/5/53/Club_America_badge.svg/80px-Club_America_badge.svg.png",
+  "Atlas":          "https://upload.wikimedia.org/wikipedia/en/thumb/1/16/Atlas_F.C._logo.svg/80px-Atlas_F.C._logo.svg.png",
+  "At. San Luis":   "https://upload.wikimedia.org/wikipedia/en/thumb/d/d5/Atletico_San_Luis_logo.svg/80px-Atletico_San_Luis_logo.svg.png",
+  "Chivas":         "https://upload.wikimedia.org/wikipedia/en/thumb/5/58/Guadalajara_Chivas_logo.svg/80px-Guadalajara_Chivas_logo.svg.png",
+  "Cruz Azul":      "https://upload.wikimedia.org/wikipedia/en/thumb/7/76/Cruz_Azul_logo.svg/80px-Cruz_Azul_logo.svg.png",
+  "FC Juárez":      "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/FC_Juarez_logo.svg/80px-FC_Juarez_logo.svg.png",
+  "León":           "https://upload.wikimedia.org/wikipedia/en/thumb/6/61/Club_Le%C3%B3n_logo.svg/80px-Club_Le%C3%B3n_logo.svg.png",
+  "Mazatlán":       "https://upload.wikimedia.org/wikipedia/en/thumb/1/17/Mazatlan_F.C._logo.svg/80px-Mazatlan_F.C._logo.svg.png",
+  "Monterrey":      "https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Rayados_del_Monterrey_logo.svg/80px-Rayados_del_Monterrey_logo.svg.png",
+  "Necaxa":         "https://upload.wikimedia.org/wikipedia/en/thumb/8/88/Necaxa_escudo.svg/80px-Necaxa_escudo.svg.png",
+  "Pachuca":        "https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Pachuca_de_Soto_FC_logo.svg/80px-Pachuca_de_Soto_FC_logo.svg.png",
+  "Puebla":         "https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Puebla_FC_logo.svg/80px-Puebla_FC_logo.svg.png",
+  "Pumas":          "https://upload.wikimedia.org/wikipedia/en/thumb/8/84/Pumas_UNAM_logo.svg/80px-Pumas_UNAM_logo.svg.png",
+  "Querétaro":      "https://upload.wikimedia.org/wikipedia/en/thumb/3/3c/Queretaro_FC_logo.svg/80px-Queretaro_FC_logo.svg.png",
+  "Santos":         "https://upload.wikimedia.org/wikipedia/en/thumb/e/ef/Santos_Laguna_logo.svg/80px-Santos_Laguna_logo.svg.png",
+  "Tigres":         "https://upload.wikimedia.org/wikipedia/en/thumb/d/d8/Tigres_UANL_logo.svg/80px-Tigres_UANL_logo.svg.png",
+  "Toluca":         "https://upload.wikimedia.org/wikipedia/en/thumb/3/31/Deportivo_Toluca_FC_logo.svg/80px-Deportivo_Toluca_FC_logo.svg.png",
+  "Xolos Tijuana":  "https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Club_Tijuana_logo.svg/80px-Club_Tijuana_logo.svg.png",
+};
+
+function getEscudo(equipo) {
+  return ESCUDOS[equipo] || `https://ui-avatars.com/api/?name=${encodeURIComponent(equipo)}&background=e0e0e8&color=1a1a2e&size=80&bold=true&font-size=0.35`;
+}
+
 // ── ESTADO ──
 let jornadaActual = 9;
 const selecciones = {};   // { jornadaNum: { "id": "local"|"empate"|"visita" } }
@@ -422,10 +455,12 @@ function renderPartidos() {
       <div class="partido-fecha">${p.fecha}</div>
       <div class="partido-equipos">
         <div class="equipo">
+          <img class="equipo-escudo" src="${getEscudo(p.local)}" alt="${p.local}" onerror="this.src='${getEscudo(p.local)}'">
           <div class="equipo-nombre">${p.local}</div>
         </div>
         <div class="vs">VS</div>
         <div class="equipo">
+          <img class="equipo-escudo" src="${getEscudo(p.visita)}" alt="${p.visita}" onerror="this.src='${getEscudo(p.visita)}'">
           <div class="equipo-nombre">${p.visita}</div>
         </div>
       </div>
@@ -493,6 +528,16 @@ document.getElementById('btn-gen').addEventListener('click', async () => {
     </div>`;
   }).join('');
 
+  // ── CSV para el QR ──
+  // formato: nombre,jornada,pick1,pick2,...,pickN
+  // picks: L / E / V
+  const csvPicks = j.partidos.map(p => {
+    const s = sels[p.id];
+    return s === 'local' ? 'L' : s === 'empate' ? 'E' : s === 'visita' ? 'V' : '';
+  }).join(',');
+  const csvData = `${nombre},J${jornadaActual},${csvPicks}`;
+
+  // Renderizar captura con placeholder para el QR
   document.getElementById('captura').innerHTML = `
     <div class="cap-header">
       <div class="cap-logo">⚽</div>
@@ -506,7 +551,23 @@ document.getElementById('btn-gen').addEventListener('click', async () => {
       <div class="cap-fecha">📅 ${hora}<br>Hora Ciudad de México</div>
     </div>
     ${filas}
-    <div class="cap-footer">Quiniela Liga MX · Clausura 2026</div>`;
+    <div class="cap-footer">
+      <div class="cap-footer-text">Quiniela Liga MX · Clausura 2026</div>
+      <div class="cap-qr" id="qr-container"></div>
+    </div>`;
+
+  // Generar QR dentro del div de captura
+  new QRCode(document.getElementById('qr-container'), {
+    text: csvData,
+    width: 72,
+    height: 72,
+    colorDark: '#1e3a5f',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // Esperar a que el QR se renderice antes de capturar
+  await new Promise(r => setTimeout(r, 120));
 
   try {
     const canvas = await html2canvas(document.getElementById('captura'), { backgroundColor:'#ffffff', scale:2, useCORS:true, allowTaint:true, logging:false });
