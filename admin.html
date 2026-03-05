@@ -544,6 +544,8 @@ function exportarExcel() {
   const res = ticketRes
     ? Object.fromEntries(ticketRes.picks.map((p, i) => [i, p || null]))
     : {};
+  console.log('RES:', JSON.stringify(res));
+  console.log('PICKS[0]:', JSON.stringify(validTickets[0]?.picks));
   const nombres = validTickets.map(t => t.nombre);
 
   const wb = XLSX.utils.book_new();
