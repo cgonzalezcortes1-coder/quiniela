@@ -511,13 +511,13 @@ document.getElementById('btn-gen').addEventListener('click', async () => {
   await new Promise(resolve => {
     new QRCode(qrTemp, {
       text: csvData,
-      width: 80,
-      height: 80,
-      colorDark: '#1e3a5f',
+      width: 200,
+      height: 200,
+      colorDark: '#000000',
       colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
+      correctLevel: QRCode.CorrectLevel.L
     });
-    setTimeout(resolve, 150);
+    setTimeout(resolve, 200);
   });
 
   // Extraer el QR como data URL desde su canvas
@@ -541,7 +541,7 @@ document.getElementById('btn-gen').addEventListener('click', async () => {
     ${filas}
     <div class="cap-footer">
       <div class="cap-footer-text">Quiniela Liga MX · Clausura 2026</div>
-      ${qrDataUrl ? `<img src="${qrDataUrl}" width="72" height="72" style="display:block;border-radius:4px;" />` : ''}
+      ${qrDataUrl ? `<img src="${qrDataUrl}" width="120" height="120" style="display:block;image-rendering:pixelated;" />` : ''}
     </div>`;
 
   try {
