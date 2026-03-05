@@ -673,9 +673,8 @@ function exportarExcel() {
 
   XLSX.utils.book_append_sheet(wb, ws, `J${jornadaNum}`);
 
-  // Nombre de archivo
   const filename = `quiniela_j${jornadaNum}.xlsx`;
-  XLSX.writeFile(wb, filename);
+  XLSX.writeFile(wb, filename, { bookType: 'xlsx', cellStyles: true });
   toast(`✓ ${filename} descargado`);
 }
 
