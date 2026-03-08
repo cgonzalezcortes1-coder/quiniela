@@ -329,10 +329,10 @@ const JORNADAS = {
   9:  { titulo:"Jornada 9",  fechas:"3–4 Mar 2026",   partidos:["Pachuca vs Necaxa","Santos vs Cruz Azul","At. San Luis vs Mazatlán","Pumas vs Toluca","Monterrey vs Querétaro","Puebla vs Tigres","Atlas vs Xolos Tijuana","América vs FC Juárez","Chivas vs León"] },
   10: { titulo:"Jornada 10", fechas:"6–8 Mar 2026",   partidos:["Mazatlán vs León","Necaxa vs Pumas","Cruz Azul vs At. San Luis","Querétaro vs América","Pachuca vs Puebla","Atlas vs Chivas","Monterrey vs Tigres","Toluca vs FC Juárez","Xolos Tijuana vs Santos"] },
   11: { titulo:"Jornada 11", fechas:"13–15 Mar 2026", partidos:["Puebla vs Necaxa","FC Juárez vs Monterrey","At. San Luis vs Pachuca","Chivas vs Santos","León vs Xolos","Toluca vs Atlas","Pumas vs Cruz Azul","Tigres vs Querétaro","América vs Mazatlán"] },
-  12: { titulo:"Jornada 12", fechas:"20–22 Mar 2026", partidos:["Necaxa vs Xolos","Mazatlán vs Cruz Azul","Atlas vs Querétaro","At. San Luis vs León","Monterrey vs Chivas","Pumas vs América","Pachuca vs Toluca","Santos vs Puebla","FC Juárez vs Tigres"] },  
-  13: { titulo:"Jornada 13", fechas:"3–5 Abr 2026", partidos:["Puebla vs FC Juárez","Necaxa vs Mazatlán","Xolos vs Tigres","Monterrey vs At. San Luis","León vs Atlas","Cruz Azul vs Pachuca","Santos vs América","Querétaro vs Toluca","Chivas vs Pumas"] },
+  12: { titulo:"Jornada 12", fechas:"20–22 Mar 2026", partidos:["Necaxa vs Xolos","Mazatlán vs Cruz Azul","Atlas vs Querétaro","At. San Luis vs León","Monterrey vs Chivas","Pumas vs América","Pachuca vs Toluca","Santos vs Puebla","FC Juárez vs Tigres"] },
+  13: { titulo:"Jornada 13", fechas:"3–5 Abr 2026",   partidos:["Puebla vs FC Juárez","Necaxa vs Mazatlán","Xolos vs Tigres","Monterrey vs At. San Luis","León vs Atlas","Cruz Azul vs Pachuca","Santos vs América","Querétaro vs Toluca","Chivas vs Pumas"] },
   14: { titulo:"Jornada 14", fechas:"10–12 Abr 2026", partidos:["Puebla vs León","FC Juárez vs Xolos","Tigres vs Chivas","Querétaro vs Necaxa","Atlas vs Monterrey","Pachuca vs Santos","América vs Cruz Azul","Pumas vs Mazatlán","Toluca vs At. San Luis"] },
-  15: { titulo:"Jornada 15", fechas:"17–19 Abr 2026", partidos:["Mazatlán vs Querétaro","At. San Luis vs Pumas","Necaxa vs Tigres","Cruz Azul vs Xolos","Chivas vs Puebla","Monterrey vs Pachuca","León vs FC Juárez","América vs Toluca","Santos vs Atlas"] },  
+  15: { titulo:"Jornada 15", fechas:"17–19 Abr 2026", partidos:["Mazatlán vs Querétaro","At. San Luis vs Pumas","Necaxa vs Tigres","Cruz Azul vs Xolos","Chivas vs Puebla","Monterrey vs Pachuca","León vs FC Juárez","América vs Toluca","Santos vs Atlas"] },
   16: { titulo:"Jornada 16", fechas:"21–22 Abr 2026", partidos:["Pumas vs FC Juárez","Querétaro vs Cruz Azul","Monterrey vs Puebla","León vs América","Atlas vs Tigres","At. San Luis vs Santos","Mazatlán vs Toluca","Necaxa vs Chivas","Xolos vs Pachuca"] },
   17: { titulo:"Jornada 17", fechas:"24–26 Abr 2026", partidos:["Puebla vs Querétaro","Pachuca vs Pumas","Tigres vs Mazatlán","Chivas vs Xolos","Toluca vs León","América vs Atlas","FC Juárez vs At. San Luis","Santos vs Monterrey","Cruz Azul vs Necaxa"] },
 };
@@ -461,7 +461,7 @@ function renderTabla() {
   const container = document.getElementById('tabla-container');
   const empty     = document.getElementById('tabla-empty');
   const btnExp    = document.getElementById('btn-exportar');
-  const btnJpg    = document.getElementById('btn-jpg'); // ← AGREGADO
+  const btnJpg    = document.getElementById('btn-jpg');
 
   const validTickets  = tickets.filter(t => t.ok && !t.esResultados);
   const ticketRes     = tickets.find(t => t.ok && t.esResultados);
@@ -470,43 +470,50 @@ function renderTabla() {
     container.style.display = 'none';
     empty.style.display = 'block';
     btnExp.disabled = true;
-    btnJpg.disabled = true; // ← AGREGADO
+    btnJpg.disabled = true;
     return;
   }
 
   container.style.display = 'block';
   empty.style.display = 'none';
   btnExp.disabled = false;
-  btnJpg.disabled = false; // ← AGREGADO
+  btnJpg.disabled = false;
 
   const jornadaNum = validTickets[0].jornada;
   const jData = JORNADAS[jornadaNum];
   document.getElementById('jornada-val').textContent = jData?.titulo || `J${jornadaNum}`;
+
   const partidos = jData?.partidos || [];
   const nombres  = validTickets.map(t => t.nombre);
 
+  // Resultados: del ticket Resultados_Oficiales o null si no existe
   const res = ticketRes
     ? Object.fromEntries(ticketRes.picks.map((p, i) => [i, p || null]))
     : {};
 
   const tabla = document.getElementById('tabla');
 
+  // Header
   let html = '<thead><tr>';
   html += `<th class="partido-col">Partido</th>`;
   html += `<th style="color:#4fc3f7">Resultado</th>`;
   nombres.forEach(n => { html += `<th>${n.toUpperCase()}</th>`; });
   html += '</tr></thead><tbody>';
 
+  // Filas
   partidos.forEach((partido, pi) => {
     const resultado = res[pi] || null;
     const pendiente = !resultado;
     html += `<tr>`;
     html += `<td class="partido-col">${partido}</td>`;
+
+    // Celda resultado — solo lectura, viene del ticket
     const resLabel = { L:'Local', E:'Empate', V:'Visita' }[resultado] || '— pendiente —';
     const resStyle = pendiente
       ? 'color:var(--amarillo);font-style:italic'
       : 'color:#4fc3f7;font-weight:700;font-family:"DM Mono",monospace';
     html += `<td style="${resStyle}">${resLabel}</td>`;
+
     validTickets.forEach(t => {
       const pick = t.picks[pi] || '?';
       const hit  = resultado && pick === resultado;
@@ -515,6 +522,7 @@ function renderTabla() {
     html += '</tr>';
   });
 
+  // Fila total
   html += '<tr class="total-row">';
   html += `<td class="partido-col" colspan="2">TOTAL JORNADA ${jornadaNum}</td>`;
   validTickets.forEach(t => {
@@ -540,50 +548,10 @@ function exportarExcel() {
   const res = ticketRes
     ? Object.fromEntries(ticketRes.picks.map((p, i) => [i, p || null]))
     : {};
-  console.log('RES:', JSON.stringify(res));
-  console.log('PICKS[0]:', JSON.stringify(validTickets[0]?.picks));
   const nombres = validTickets.map(t => t.nombre);
 
   const wb = XLSX.utils.book_new();
   const wsData = [];
-
-  // ── EXPORTAR JPG ──
-document.getElementById('btn-jpg').addEventListener('click', exportarJPG);
-
-async function exportarJPG() {
-  const tablaWrap = document.querySelector('.tabla-wrap');
-  if (!tablaWrap) return;
-
-  // Cargar html2canvas dinámicamente si no está
-  if (!window.html2canvas) {
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
-  }
-
-  // Fondo temporal para que el canvas no salga transparente
-  const orig = tablaWrap.style.background;
-  tablaWrap.style.background = '#161920';
-
-  const canvas = await html2canvas(tablaWrap, {
-    backgroundColor: '#161920',
-    scale: 2,
-    useCORS: true,
-    logging: false,
-  });
-
-  tablaWrap.style.background = orig;
-
-  const link = document.createElement('a');
-  const jornadaNum = tickets.filter(t=>t.ok && !t.esResultados)[0]?.jornada || 'X';
-  link.download = `quiniela_j${jornadaNum}.jpg`;
-  link.href = canvas.toDataURL('image/jpeg', 0.93);
-  link.click();
-  toast('✓ JPG descargado');
-}
 
   // Fila de cabecera
   wsData.push(['', 'RESULTADO', ...nombres]);
@@ -610,28 +578,20 @@ async function exportarJPG() {
   const nPartidos = partidos.length;
   const nCols = 2 + nombres.length;
 
-  // Anchos de columna
   ws['!cols'] = [
     { wch: 28 }, { wch: 12 },
     ...nombres.map(() => ({ wch: 14 }))
   ];
 
-  // Colores
   const AZUL    = '1E3A5F';
   const VERDE   = '00A845';
   const VERDE_L = 'E6F7EE';
   const AMAR    = 'FFF8E1';
-  const ROJO_L  = 'FFEAEA';
   const GRIS_L  = 'F0F1F6';
   const BLANCO  = 'FFFFFF';
 
   function cellRef(r, c) {
     return XLSX.utils.encode_cell({ r, c });
-  }
-
-  function applyStyle(cell, style) {
-    if (!ws[cell]) ws[cell] = { t: 's', v: '' };
-    ws[cell].s = style;
   }
 
   // Header row (fila 0)
@@ -652,7 +612,6 @@ async function exportarJPG() {
     const resultado = res[pi] || null;
     const bgRow = pi % 2 === 0 ? GRIS_L : BLANCO;
 
-    // Celda partido
     const refPartido = cellRef(row, 0);
     if (!ws[refPartido]) ws[refPartido] = { t: 's', v: '' };
     ws[refPartido].s = {
@@ -661,7 +620,6 @@ async function exportarJPG() {
       alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
     };
 
-    // Celda resultado
     const refRes = cellRef(row, 1);
     if (!ws[refRes]) ws[refRes] = { t: 's', v: '' };
     const pendiente = !resultado;
@@ -671,7 +629,6 @@ async function exportarJPG() {
       alignment: { horizontal: 'center', vertical: 'center' },
     };
 
-    // Celdas de picks
     validTickets.forEach((t, ti) => {
       const pick = t.picks[pi] || '?';
       const hit  = resultado && pick === resultado;
@@ -704,7 +661,6 @@ async function exportarJPG() {
     };
   }
 
-  // Rango
   ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: totalRowIdx, c: nCols - 1 } });
 
   XLSX.utils.book_append_sheet(wb, ws, `J${jornadaNum}`);
@@ -712,6 +668,42 @@ async function exportarJPG() {
   const filename = `quiniela_j${jornadaNum}.xlsx`;
   XLSX.writeFile(wb, filename, { bookType: 'xlsx', cellStyles: true });
   toast(`✓ ${filename} descargado`);
+}
+
+// ── EXPORTAR JPG ──
+document.getElementById('btn-jpg').addEventListener('click', exportarJPG);
+
+async function exportarJPG() {
+  const tablaWrap = document.querySelector('.tabla-wrap');
+  if (!tablaWrap) return;
+
+  if (!window.html2canvas) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const orig = tablaWrap.style.background;
+  tablaWrap.style.background = '#161920';
+
+  const canvas = await html2canvas(tablaWrap, {
+    backgroundColor: '#161920',
+    scale: 2,
+    useCORS: true,
+    logging: false,
+  });
+
+  tablaWrap.style.background = orig;
+
+  const link = document.createElement('a');
+  const jornadaNum = tickets.filter(t => t.ok && !t.esResultados)[0]?.jornada || 'X';
+  link.download = `quiniela_j${jornadaNum}.jpg`;
+  link.href = canvas.toDataURL('image/jpeg', 0.93);
+  link.click();
+  toast('✓ JPG descargado');
 }
 
 // ── TOAST ──
