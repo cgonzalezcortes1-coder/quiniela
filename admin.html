@@ -313,6 +313,7 @@
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-exportar" disabled>⬇ Descargar .xlsx</button>
+      <button class="btn btn-primary" id="btn-jpg" disabled style="background:#4fc3f7;color:#000;">📷 Descargar JPG</button>
       <span style="font-size:12px;color:var(--gris);">Los partidos pendientes quedan marcados en amarillo</span>
     </div>
   </div>
@@ -460,6 +461,7 @@ function renderTabla() {
   const container = document.getElementById('tabla-container');
   const empty     = document.getElementById('tabla-empty');
   const btnExp    = document.getElementById('btn-exportar');
+  const btnJpg    = document.getElementById('btn-jpg'); // ← AGREGADO
 
   const validTickets  = tickets.filter(t => t.ok && !t.esResultados);
   const ticketRes     = tickets.find(t => t.ok && t.esResultados);
@@ -468,48 +470,43 @@ function renderTabla() {
     container.style.display = 'none';
     empty.style.display = 'block';
     btnExp.disabled = true;
+    btnJpg.disabled = true; // ← AGREGADO
     return;
   }
 
   container.style.display = 'block';
   empty.style.display = 'none';
   btnExp.disabled = false;
+  btnJpg.disabled = false; // ← AGREGADO
 
   const jornadaNum = validTickets[0].jornada;
   const jData = JORNADAS[jornadaNum];
   document.getElementById('jornada-val').textContent = jData?.titulo || `J${jornadaNum}`;
-
   const partidos = jData?.partidos || [];
   const nombres  = validTickets.map(t => t.nombre);
 
-  // Resultados: del ticket Resultados_Oficiales o null si no existe
   const res = ticketRes
     ? Object.fromEntries(ticketRes.picks.map((p, i) => [i, p || null]))
     : {};
 
   const tabla = document.getElementById('tabla');
 
-  // Header
   let html = '<thead><tr>';
   html += `<th class="partido-col">Partido</th>`;
   html += `<th style="color:#4fc3f7">Resultado</th>`;
   nombres.forEach(n => { html += `<th>${n.toUpperCase()}</th>`; });
   html += '</tr></thead><tbody>';
 
-  // Filas
   partidos.forEach((partido, pi) => {
     const resultado = res[pi] || null;
     const pendiente = !resultado;
     html += `<tr>`;
     html += `<td class="partido-col">${partido}</td>`;
-
-    // Celda resultado — solo lectura, viene del ticket
     const resLabel = { L:'Local', E:'Empate', V:'Visita' }[resultado] || '— pendiente —';
     const resStyle = pendiente
       ? 'color:var(--amarillo);font-style:italic'
       : 'color:#4fc3f7;font-weight:700;font-family:"DM Mono",monospace';
     html += `<td style="${resStyle}">${resLabel}</td>`;
-
     validTickets.forEach(t => {
       const pick = t.picks[pi] || '?';
       const hit  = resultado && pick === resultado;
@@ -518,7 +515,6 @@ function renderTabla() {
     html += '</tr>';
   });
 
-  // Fila total
   html += '<tr class="total-row">';
   html += `<td class="partido-col" colspan="2">TOTAL JORNADA ${jornadaNum}</td>`;
   validTickets.forEach(t => {
@@ -550,6 +546,44 @@ function exportarExcel() {
 
   const wb = XLSX.utils.book_new();
   const wsData = [];
+
+  // ── EXPORTAR JPG ──
+document.getElementById('btn-jpg').addEventListener('click', exportarJPG);
+
+async function exportarJPG() {
+  const tablaWrap = document.querySelector('.tabla-wrap');
+  if (!tablaWrap) return;
+
+  // Cargar html2canvas dinámicamente si no está
+  if (!window.html2canvas) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  // Fondo temporal para que el canvas no salga transparente
+  const orig = tablaWrap.style.background;
+  tablaWrap.style.background = '#161920';
+
+  const canvas = await html2canvas(tablaWrap, {
+    backgroundColor: '#161920',
+    scale: 2,
+    useCORS: true,
+    logging: false,
+  });
+
+  tablaWrap.style.background = orig;
+
+  const link = document.createElement('a');
+  const jornadaNum = tickets.filter(t=>t.ok && !t.esResultados)[0]?.jornada || 'X';
+  link.download = `quiniela_j${jornadaNum}.jpg`;
+  link.href = canvas.toDataURL('image/jpeg', 0.93);
+  link.click();
+  toast('✓ JPG descargado');
+}
 
   // Fila de cabecera
   wsData.push(['', 'RESULTADO', ...nombres]);
