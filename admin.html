@@ -674,8 +674,8 @@ function exportarExcel() {
 document.getElementById('btn-jpg').addEventListener('click', exportarJPG);
 
 async function exportarJPG() {
-  const tablaWrap = document.querySelector('.tabla-wrap');
-  if (!tablaWrap) return;
+  const tabla = document.getElementById('tabla');
+  if (!tabla) return;
 
   if (!window.html2canvas) {
     await new Promise((res, rej) => {
@@ -686,17 +686,28 @@ async function exportarJPG() {
     });
   }
 
-  const orig = tablaWrap.style.background;
-  tablaWrap.style.background = '#161920';
+  // Guardar estilos originales del tabla-wrap para restaurar después
+  const tablaWrap = document.querySelector('.tabla-wrap');
+  const origOverflow = tablaWrap.style.overflow;
+  const origWidth    = tablaWrap.style.width;
+
+  // Expandir el wrap temporalmente para que html2canvas vea todo
+  tablaWrap.style.overflow = 'visible';
+  tablaWrap.style.width    = tabla.scrollWidth + 'px';
 
   const canvas = await html2canvas(tablaWrap, {
     backgroundColor: '#161920',
     scale: 2,
     useCORS: true,
     logging: false,
+    width:  tabla.scrollWidth,
+    height: tabla.scrollHeight + 20,
+    windowWidth:  tabla.scrollWidth + 100,
   });
 
-  tablaWrap.style.background = orig;
+  // Restaurar estilos
+  tablaWrap.style.overflow = origOverflow;
+  tablaWrap.style.width    = origWidth;
 
   const link = document.createElement('a');
   const jornadaNum = tickets.filter(t => t.ok && !t.esResultados)[0]?.jornada || 'X';
