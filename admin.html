@@ -241,6 +241,17 @@
     }
     .toast.show { opacity: 1; }
 
+    /* JORNADA SELECTOR EN TABLA */
+    .jornada-selector { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .jsel-tab {
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--surface2); font-size: 12px; font-weight: 700;
+      color: var(--gris2); cursor: pointer; transition: all .15s;
+      font-family: 'DM Mono', monospace;
+    }
+    .jsel-tab:hover { border-color: var(--verde); color: var(--verde); }
+    .jsel-tab.activo { background: var(--verde); border-color: var(--verde); color: #000; }
+
     @media (max-width: 600px) {
       main { padding: 16px 12px 60px; }
       .step { padding: 16px; }
@@ -293,6 +304,7 @@
     </div>
 
     <div id="tabla-container" style="display:none;">
+      <div id="jsel-container"></div>
       <div class="jornada-info" style="margin-bottom:16px;">
         <span class="info-label">Jornada detectada:</span>
         <span class="info-val" id="jornada-val">—</span>
@@ -339,6 +351,7 @@ const JORNADAS = {
 
 // ── ESTADO ──
 let tickets = [];    // [{ nombre, jornada, picks: ['L','E','V',...], ok, esResultados }]
+let jornadaVista = null;
 
 const CLAVE_RESULTADOS = 'Resultados_Oficiales';
 
@@ -463,14 +476,14 @@ function renderTabla() {
   const btnExp    = document.getElementById('btn-exportar');
   const btnJpg    = document.getElementById('btn-jpg');
 
-  const validTickets  = tickets.filter(t => t.ok && !t.esResultados);
-  const ticketRes     = tickets.find(t => t.ok && t.esResultados);
+  const allValid = tickets.filter(t => t.ok && !t.esResultados);
 
-  if (validTickets.length === 0) {
+  if (allValid.length === 0) {
     container.style.display = 'none';
     empty.style.display = 'block';
     btnExp.disabled = true;
     btnJpg.disabled = true;
+    document.getElementById('jsel-container').innerHTML = '';
     return;
   }
 
@@ -479,7 +492,28 @@ function renderTabla() {
   btnExp.disabled = false;
   btnJpg.disabled = false;
 
-  const jornadaNum = validTickets[0].jornada;
+  // ── Jornadas disponibles ──
+  const jornadasDisp = [...new Set(allValid.map(t => t.jornada))].sort((a, b) => a - b);
+  if (!jornadasDisp.includes(jornadaVista)) jornadaVista = jornadasDisp[0];
+
+  // ── Selector de jornada ──
+  const jselCont = document.getElementById('jsel-container');
+  if (jornadasDisp.length > 1) {
+    jselCont.innerHTML = '<div class="jornada-selector">' +
+      jornadasDisp.map(j =>
+        `<button class="jsel-tab${j === jornadaVista ? ' activo' : ''}" data-j="${j}">J${j} · ${allValid.filter(t => t.jornada === j).length} tickets</button>`
+      ).join('') + '</div>';
+    jselCont.querySelectorAll('.jsel-tab').forEach(btn => {
+      btn.addEventListener('click', () => { jornadaVista = parseInt(btn.dataset.j); renderTabla(); });
+    });
+  } else {
+    jselCont.innerHTML = '';
+  }
+
+  const validTickets = allValid.filter(t => t.jornada === jornadaVista);
+  const ticketRes    = tickets.find(t => t.ok && t.esResultados && t.jornada === jornadaVista);
+
+  const jornadaNum = jornadaVista;
   const jData = JORNADAS[jornadaNum];
   document.getElementById('jornada-val').textContent = jData?.titulo || `J${jornadaNum}`;
 
@@ -538,8 +572,8 @@ function renderTabla() {
 document.getElementById('btn-exportar').addEventListener('click', exportarExcel);
 
 function exportarExcel() {
-  const validTickets = tickets.filter(t => t.ok && !t.esResultados);
-  const ticketRes    = tickets.find(t => t.ok && t.esResultados);
+  const validTickets = tickets.filter(t => t.ok && !t.esResultados && t.jornada === jornadaVista);
+  const ticketRes    = tickets.find(t => t.ok && t.esResultados && t.jornada === jornadaVista);
   if (!validTickets.length) return;
 
   const jornadaNum = validTickets[0].jornada;
@@ -686,17 +720,26 @@ async function exportarJPG() {
     });
   }
 
-  // Guardar estilos originales del tabla-wrap para restaurar después
   const tablaWrap = document.querySelector('.tabla-wrap');
   const origOverflow = tablaWrap.style.overflow;
   const origWidth    = tablaWrap.style.width;
 
-  // Expandir el wrap temporalmente para que html2canvas vea todo
   tablaWrap.style.overflow = 'visible';
   tablaWrap.style.width    = tabla.scrollWidth + 'px';
 
+  // ── Tema claro temporal solo para la captura ──
+  const lightStyle = document.createElement('style');
+  lightStyle.textContent = `
+    .tabla-wrap { background: #f5f6fa !important; }
+    #tabla th   { background: #1e3a5f !important; color: #ffffff !important; }
+    #tabla td   { color: #1a1a2e !important; background: transparent !important; }
+    #tabla tr.total-row td { background: #1e3a5f !important; color: #ffffff !important; }
+    #tabla .cell-hit { background: rgba(0,168,69,.18) !important; }
+  `;
+  document.head.appendChild(lightStyle);
+
   const canvas = await html2canvas(tablaWrap, {
-    backgroundColor: '#161920',
+    backgroundColor: '#f5f6fa',
     scale: 2,
     useCORS: true,
     logging: false,
@@ -705,12 +748,13 @@ async function exportarJPG() {
     windowWidth:  tabla.scrollWidth + 100,
   });
 
-  // Restaurar estilos
+  // Restaurar
   tablaWrap.style.overflow = origOverflow;
   tablaWrap.style.width    = origWidth;
+  document.head.removeChild(lightStyle);
 
   const link = document.createElement('a');
-  const jornadaNum = tickets.filter(t => t.ok && !t.esResultados)[0]?.jornada || 'X';
+  const jornadaNum = jornadaVista || 'X';
   link.download = `quiniela_j${jornadaNum}.jpg`;
   link.href = canvas.toDataURL('image/jpeg', 0.93);
   link.click();
