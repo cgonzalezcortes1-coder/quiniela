@@ -57,13 +57,16 @@
     }
 
     /* NOMBRE */
-    .card input[type=text] {
+    .card select {
       width: 100%; background: var(--gris-lite); border: 1.5px solid var(--borde);
       border-radius: 10px; padding: 13px 16px; font-size: 17px;
       font-family: 'Inter',sans-serif; font-weight: 600; color: var(--texto); outline: none;
-      transition: border-color .2s;
+      transition: border-color .2s; appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b7b9a' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 16px center;
     }
-    .card input[type=text]:focus { border-color: var(--verde); background: #fff; }
+    .card select:focus { border-color: var(--verde); background-color: #fff; }
+    .card select option[value=""] { color: var(--gris); }
 
     /* TABS JORNADA */
     .jornada-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -202,7 +205,20 @@
 <main>
   <div class="card">
     <label>Tu nombre</label>
-    <input type="text" id="nombre" placeholder="Escribe tu nombre…" maxlength="40" />
+    <select id="nombre">
+      <option value="">— Selecciona tu nombre —</option>
+      <option>Cesar</option>
+      <option>Fer V</option>
+      <option>Enrique</option>
+      <option>Hector</option>
+      <option>Dany</option>
+      <option>Juan</option>
+      <option>Fer Diaz</option>
+      <option>Berna</option>
+      <option>Gus</option>
+      <option>Lucio</option>
+      <option>Miguel</option>
+    </select>
   </div>
 
   <div class="card">
@@ -387,7 +403,18 @@ const JORNADAS = {
 };
 
 // ── ESTADO ──
-let jornadaActual = 9;
+function jornadaActiva() {
+  const meses = { Ene:0,Feb:1,Mar:2,Abr:3,May:4,Jun:5,Jul:6,Ago:7,Sep:8,Oct:9,Nov:10,Dic:11 };
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  for (const [num, data] of Object.entries(JORNADAS)) {
+    const m = data.fechas.match(/\d+[–\-](\d+)\s+(\w+)\s+(\d+)/);
+    if (!m) continue;
+    const fin = new Date(parseInt(m[3]), meses[m[2]], parseInt(m[1]));
+    if (fin >= hoy) return parseInt(num);
+  }
+  return parseInt(Object.keys(JORNADAS).pop());
+}
+let jornadaActual = jornadaActiva();
 const selecciones = {};   // { jornadaNum: { "id": "local"|"empate"|"visita" } }
 
 // ── RENDER TABS ──
@@ -465,7 +492,7 @@ function actualizarProgreso() {
   document.getElementById('btn-gen').disabled = (n < total || !nombre);
 }
 
-document.getElementById('nombre').addEventListener('input', actualizarProgreso);
+document.getElementById('nombre').addEventListener('change', actualizarProgreso);
 
 // ── HORA CDMX ──
 async function getHoraCDMX() {
