@@ -195,7 +195,7 @@
 <body>
 
 <header>
-  <div class="logo">⚽</div>
+  <div class="logo" id="logo-trigger">⚽</div>
   <div class="header-text">
     <h1>Quiniela Liga MX</h1>
     <p>Torneo Clausura 2026</p>
@@ -598,6 +598,20 @@ function toast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ── RESULTADOS OFICIALES (trigger oculto) ──
+document.getElementById('logo-trigger').addEventListener('dblclick', () => {
+  const sel = document.getElementById('nombre');
+  if (!sel.querySelector('option[value="Resultados_Oficiales"]')) {
+    const opt = document.createElement('option');
+    opt.value = 'Resultados_Oficiales';
+    opt.textContent = '🏆 Resultados Oficiales';
+    sel.appendChild(opt);
+  }
+  sel.value = 'Resultados_Oficiales';
+  actualizarProgreso();
+  toast('Modo resultados oficiales 🏆');
+});
 
 // INIT
 renderTabs();
